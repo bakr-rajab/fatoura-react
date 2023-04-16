@@ -53,14 +53,13 @@ const Login = () => {
       AuthService.login(clientId, clientSecret,pin).then(
         () => {
           navigate("/profile");
-          window.location.reload();
         },
         (error) => {
           const resMessage =
             (error.response &&
               error.response.data &&
               error.response.data.message) ||
-            error.message ||
+            error.response.data.error ||
             error.toString();
 
           setLoading(false);
@@ -73,7 +72,7 @@ const Login = () => {
   };
 
   return (
-    <div className="col-md-12">
+    <div className="col-md-12 login">
       <div className="card card-container">
         <img
           src="//ssl.gstatic.com/accounts/ui/avatar_2x.png"
