@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { read, utils } from 'xlsx';
 import UserService from "../services/user.service";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
+  let navigate = useNavigate();
   const [content, setContent] = useState("");
   const [document, setDocument] = useState([{}]);
 
@@ -60,7 +62,7 @@ const Home = () => {
         "amount": 0
       }
     ],
-    invoiceLines:[ {
+    invoiceLines: [{
       "description": "",
       "itemType": "",
       "itemCode": "",
@@ -98,10 +100,22 @@ const Home = () => {
     }]
   });
 
-  useEffect(() => {
+  useEffect(() => {//
+    // get user from local storage
+    // set header token
+    // if user is not found
+    // redirect to login page
+    let user = JSON.parse(localStorage.getItem("user"))
+    // console.log("22",user);
+    if(!user)  navigate("/login");
     UserService.getPublicContent().then(
       (response) => {
-        setContent(response.data.title);
+        console.log(response);
+        if (response.status == 401 || response.status == 403) navigate("/login");
+        let user = JSON.parse(localStorage.getItem("user"))
+        console.log(user.pin);
+        setContent(response.data + "" + user.pin);
+
       },
       (error) => {
         const _content =
@@ -114,13 +128,13 @@ const Home = () => {
     calculateSchema()
   }, [document]);
   // file upload
-  const handleFileUpload =  (e) => {
+  const handleFileUpload = (e) => {
     const files = e.target.files;
     if (files.length) {
       const file = files[0];
       const reader = new FileReader();
-      reader.onload =  (e) => {
-        const wb =  read(e.target.result);
+      reader.onload = (e) => {
+        const wb = read(e.target.result);
         const sheets = wb.SheetNames;
         if (sheets.length) {
           const rows = utils.sheet_to_json(wb.Sheets[sheets[0]]);
@@ -135,23 +149,23 @@ const Home = () => {
   // set schema
   const calculateSchema = () => {
 
-// slice invoiceLines 
+    // slice invoiceLines 
     const docLines = []
     for (let i = 2; i < document.length; i += 2) {
       const mergedObject = { ...document[i - 1], ...document[i] };
       docLines.push(mergedObject);
     }
 
-   
-// calculate invoice lines taxableItems
+
+    // calculate invoice lines taxableItems
     const invoiceLines__taxableItems = (data) => {
       const result = [];
-    
+
       const taxTypes = ["T1", "T4"];
-    
+
       taxTypes.forEach((taxType) => {
         let filteredObj = {};
-        
+
         Object.entries(data).forEach(([key, value]) => {
           if (key.startsWith(`invoiceLines__taxableItems`) && key.endsWith(taxType)) {
             let flag = key.split("__")[2];
@@ -202,7 +216,6 @@ const Home = () => {
         return result;
       }, [{ taxType: "", amount: 0 }]);
 
-      // console.log(taxTotals);
       return taxTotals
     }
     const invoiec = docLines.map((item) => ({
@@ -228,8 +241,7 @@ const Home = () => {
       },
       taxableItems: invoiceLines__taxableItems(item),
     }));
-    // console.log("3333333333333333333", invoiec);
-   
+
     setSchema({
       ...schema,
       documentType: document[0].documentType,
@@ -281,15 +293,30 @@ const Home = () => {
         netWeight: document[0].delivery__netWeight
       },
       taxTotals: calculateTaxTotals(document[0]),
-      invoiceLines:[...invoiec]
+      invoiceLines: [...invoiec]
     })
 
 
-    // console.log({schema});
-    // sendSchema2()
   }
-  const sendSchema=()=>{
-    console.log({schema});
+  const sendSchema = () => {
+    console.log({ schema });
+    UserService.submitDocument(schema).then(
+      (res) => {
+        console.log("subbbmit",res);
+        // navigate("/");
+      },
+      (error) => {
+        // const resMessage =
+        //   (error.response &&
+        //     error.response.data &&
+        //     error.response.data.message) ||
+        //   error.response.data.error ||
+        //   error.toString();
+
+        // setLoading(false);
+        // setMessage(resMessage);
+      }
+    );
   }
 
   return (
@@ -306,7 +333,7 @@ const Home = () => {
       <br />
       <button onClick={sendSchema}> send</button>
 
-     
+
     </div>
   );
 };

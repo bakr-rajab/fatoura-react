@@ -9,13 +9,22 @@ const login = (client_id, client_secret, pin) => {
 
   try {
     console.log("start login");
-    return axios.post(APP_URL + "/login", { client_id, client_secret, pin })
+   
+    return axios.post(APP_URL + "/login", { client_id, client_secret, pin }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }, 
+      timeout: 5000
+    })
       .then(loginRes => {
         if (loginRes.data) {
+          // console.log("222222222222222222", loginRes.data);
           const user = jwt(loginRes.data);
-          console.log({ user })
+          // console.log({ user })
+          user.token = loginRes.data
           localStorage.setItem("user", JSON.stringify(user))
         }
+        console.log({loginRes});
         return loginRes.data;
       })
   } catch (error) {

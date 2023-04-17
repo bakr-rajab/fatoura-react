@@ -52,7 +52,7 @@ const Login = () => {
     if (checkBtn.current.context._errors.length === 0) {
       AuthService.login(clientId, clientSecret,pin).then(
         () => {
-          navigate("/profile");
+          navigate("/");
         },
         (error) => {
           const resMessage =

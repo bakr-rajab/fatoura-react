@@ -1,11 +1,17 @@
 import axios from "axios";
 import authHeader from "./auth-header";
 
-const API_URL = "https://jsonplaceholder.typicode.com/todos";
+const API_URL =  process.env.REACT_APP_URL + "/api";
 
 const getPublicContent = async () => {
-  const res= await axios.get(API_URL + "/1");
-  console.log(res);
+  const res= await axios.post(API_URL + "/welcome",{},{ headers: authHeader() });
+  console.log("44444",res);
+  return res
+};
+const submitDocument = async (doc) => {
+  console.log("555555");
+  const res= await axios.post("http://localhost:5000/api/documents/submit",{data:doc},{ headers: authHeader() });
+  console.log("sssss",res);
   return res
 };
 
@@ -26,6 +32,7 @@ const UserService = {
   getUserBoard,
   getModeratorBoard,
   getAdminBoard,
+  submitDocument
 };
 
 export default UserService;
