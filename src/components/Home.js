@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 const Home = () => {
   let navigate = useNavigate();
   const [content, setContent] = useState("");
+  const [message, setMessage] = useState("");
   const [document, setDocument] = useState([{}]);
 
   const [schema, setSchema] = useState({
@@ -22,6 +23,8 @@ const Home = () => {
         buildingNumber: "1",
         postalCode: "",
         floor: "",
+        room: "",
+        landmark: "",
         additionalInformation: "0"
       }
     }
@@ -38,6 +41,8 @@ const Home = () => {
         buildingNumber: "1",
         postalCode: "",
         floor: "",
+        room: "",
+        landmark: "",
         additionalInformation: "0"
       }
     },
@@ -47,6 +52,9 @@ const Home = () => {
     taxpayerActivityCode: "",
     extraDiscountAmount: 0,
     totalItemsDiscountAmount: 0,
+    totalDiscountAmount: 0,
+    netAmount: 0,
+    totalSalesAmount: 0,
     internalID: "",
     totalAmount: 0,
     delivery: {
@@ -107,17 +115,19 @@ const Home = () => {
     // redirect to login page
     let user = JSON.parse(localStorage.getItem("user"))
     // console.log("22",user);
-    if(!user)  navigate("/login");
+    if (!user) navigate("/login");
     UserService.getPublicContent().then(
       (response) => {
         console.log(response);
-        if (response.status == 401 || response.status == 403) navigate("/login");
+        if (response.status === 401 || response.status === 403) navigate("/login");
         let user = JSON.parse(localStorage.getItem("user"))
         console.log(user.pin);
         setContent(response.data + "" + user.pin);
 
       },
       (error) => {
+        console.log({ error })
+        if (error.response.status === 401 || error.response.status === 403) navigate("/login");
         const _content =
           (error.response && error.response.data) ||
           error.message ||
@@ -224,13 +234,13 @@ const Home = () => {
       itemCode: item.invoiceLines__itemCode,
       unitType: item.invoiceLines__unitType,
       quantity: item.invoiceLines__quantity,
-      internalCode: item.invoiceLines__internalCode,
+      internalCode: "" + item.invoiceLines__internalCode,
       salesTotal: item.invoiceLines__salesTotal,
       total: item.invoiceLines__total,
-      valueDifference: item.invoiceLines__valueDifference,
-      totalTaxableFees: item.invoiceLines__totalTaxableFees,
+      valueDifference: +item.invoiceLines__valueDifference,
+      totalTaxableFees: +item.invoiceLines__totalTaxableFees,
       netTotal: item.invoiceLines__netTotal,
-      itemsDiscount: item.invoiceLines__itemsDiscount,
+      itemsDiscount: +item.invoiceLines__itemsDiscount,
       unitValue: {
         currencySold: item.invoiceLines__unitValue__currencySold,
         amountEGP: item.invoiceLines__unitValue__amountEGP,
@@ -246,16 +256,19 @@ const Home = () => {
       ...schema,
       documentType: document[0].documentType,
       documentTypeVersion: document[0].documentTypeVersion,
-      dateTimeIssued: document[0].dateTimeIssued,
+      dateTimeIssued: new Date().toISOString().slice(0, -5) + 'Z',
       taxpayerActivityCode: document[0].taxpayerActivityCode,
       internalID: document[0].internalID,
-      extraDiscountAmount: document[0].extraDiscountAmount,
-      totalItemsDiscountAmount: document[0].totalItemsDiscountAmount,
+      extraDiscountAmount: +document[0].extraDiscountAmount,
+      totalSalesAmount: document[0].totalSalesAmount,
+      totalItemsDiscountAmount: +document[0].totalItemsDiscountAmount,
+      totalDiscountAmount: document[0].totalDiscountAmount,
+      netAmount: document[0].netAmount,
       totalAmount: document[0].totalAmount,
       issuer: {
         ...schema.issuer,
         name: document[0].issuer__name,
-        id: document[0].issuer__id,
+        id: "" + document[0].issuer__id,
         type: document[0].issuer__type
         , address: {
           ...schema.issuer.address,
@@ -271,7 +284,7 @@ const Home = () => {
       receiver: {
         ...schema.receiver,
         name: document[0].receiver__name,
-        id: document[0].receiver__id,
+        id: "" + document[0].receiver__id,
         type: document[0].receiver__type
         , address: {
           ...schema.receiver.address,
@@ -288,9 +301,9 @@ const Home = () => {
         ...schema.delivery,
         approach: document[0].delivery__approach,
         packaging: document[0].delivery__packaging,
-        dateValidity: document[0].delivery__dateValidity,
-        grossWeight: document[0].delivery__grossWeight,
-        netWeight: document[0].delivery__netWeight
+        dateValidity: new Date().toISOString().slice(0, -5) + 'Z',
+        grossWeight: +document[0].delivery__grossWeight,
+        netWeight: +document[0].delivery__netWeight
       },
       taxTotals: calculateTaxTotals(document[0]),
       invoiceLines: [...invoiec]
@@ -302,19 +315,18 @@ const Home = () => {
     console.log({ schema });
     UserService.submitDocument(schema).then(
       (res) => {
-        console.log("subbbmit",res);
+        console.log("subbbmit", res);
         // navigate("/");
+        setMessage("document submitted successfully ....");
       },
       (error) => {
-        // const resMessage =
-        //   (error.response &&
-        //     error.response.data &&
-        //     error.response.data.message) ||
-        //   error.response.data.error ||
-        //   error.toString();
+        console.log( error.response.data.rejectedDocuments[0].error);
+        const resMessage =
+          (
+            error.response?.data?.rejectedDocuments[0]?.error?.message?.toString());
 
         // setLoading(false);
-        // setMessage(resMessage);
+        setMessage(resMessage);
       }
     );
   }
@@ -333,7 +345,8 @@ const Home = () => {
       <br />
       <button onClick={sendSchema}> send</button>
 
-
+      <hr />
+      <h3 style={{backgroundColor:"red"}}>{message}</h3>
     </div>
   );
 };

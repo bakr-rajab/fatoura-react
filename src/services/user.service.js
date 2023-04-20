@@ -10,7 +10,7 @@ const getPublicContent = async () => {
 };
 const submitDocument = async (doc) => {
   console.log("555555");
-  const res= await axios.post("http://localhost:5000/api/documents/submit",{data:doc},{ headers: authHeader() });
+  const res= await axios.post(API_URL+"/documents/submit",{data:doc},{ headers: authHeader() });
   console.log("sssss",res);
   return res
 };
