@@ -57,12 +57,26 @@ const Home = () => {
     totalSalesAmount: 0,
     internalID: "",
     totalAmount: 0,
+    purchaseOrderReference: "",
+    purchaseOrderDescription: "",
+    salesOrderReference: "",
+    salesOrderDescription: "",
+    proformaInvoiceNumber: "",
+    payment: {
+      bankName: "",
+      bankAddress: "",
+      bankAccountNo: "",
+      bankAccountIBAN: "",
+      swiftCode: "",
+      terms: ""
+    },
     delivery: {
       approach: "0",
       packaging: "0",
       dateValidity: "2022-11-19T20:59:59Z",
       grossWeight: 0,
-      netWeight: 0
+      netWeight: 0,
+      terms: ""
     },
     taxTotals: [
       {
@@ -161,9 +175,9 @@ const Home = () => {
 
     // slice invoiceLines 
     const docLines = []
-    for (let i = 2; i < document.length; i += 2) {
-      const mergedObject = { ...document[i - 1], ...document[i] };
-      docLines.push(mergedObject);
+    for (let i = 0; i < document.length; i += 1) {
+      // const mergedObject = { ...document[i - 1], ...document[i] };
+      docLines.push(document[i]);
     }
 
 
@@ -254,17 +268,6 @@ const Home = () => {
 
     setSchema({
       ...schema,
-      documentType: document[0].documentType,
-      documentTypeVersion: document[0].documentTypeVersion,
-      dateTimeIssued: new Date().toISOString().slice(0, -5) + 'Z',
-      taxpayerActivityCode: document[0].taxpayerActivityCode,
-      internalID: document[0].internalID,
-      extraDiscountAmount: +document[0].extraDiscountAmount,
-      totalSalesAmount: document[0].totalSalesAmount,
-      totalItemsDiscountAmount: +document[0].totalItemsDiscountAmount,
-      totalDiscountAmount: document[0].totalDiscountAmount,
-      netAmount: document[0].netAmount,
-      totalAmount: document[0].totalAmount,
       issuer: {
         ...schema.issuer,
         name: document[0].issuer__name,
@@ -297,16 +300,41 @@ const Home = () => {
           street: document[0].receiver__address__street,
         }
       },
+      documentType: document[0].documentType,
+      documentTypeVersion: document[0].documentTypeVersion,
+      dateTimeIssued: new Date().toISOString().slice(0, -5) + 'Z',
+      taxpayerActivityCode:""+document[0].taxpayerActivityCode,
+      internalID: "" + document[0].internalID,
+      purchaseOrderReference: "" + document[0].purchaseOrderReference,
+      purchaseOrderDescription: "" + document[0].purchaseOrderDescription,
+      salesOrderDescription: "" + document[0].salesOrderDescription,
+      salesOrderReference: "" + document[0].salesOrderReference,
+      proformaInvoiceNumber: "" + document[0].proformaInvoiceNumber,
+      extraDiscountAmount: +document[0].extraDiscountAmount,
+      totalSalesAmount: document[0].totalSalesAmount,
+      totalItemsDiscountAmount: +document[0].totalItemsDiscountAmount,
+      totalDiscountAmount: document[0].totalDiscountAmount,
+      netAmount: document[0].netAmount,
+      totalAmount: document[0].totalAmount,
+      payment: {
+        bankName: "",
+        bankAddress: "",
+        bankAccountNo: "",
+        bankAccountIBAN: "",
+        swiftCode: "",
+        terms: ""
+    },
       delivery: {
         ...schema.delivery,
         approach: document[0].delivery__approach,
         packaging: document[0].delivery__packaging,
         dateValidity: new Date().toISOString().slice(0, -5) + 'Z',
         grossWeight: +document[0].delivery__grossWeight,
-        netWeight: +document[0].delivery__netWeight
+        netWeight: +document[0].delivery__netWeight,
+        terms: ""+document[0].delivery__terms
       },
       taxTotals: calculateTaxTotals(document[0]),
-      invoiceLines: [...invoiec]
+      invoiceLines: invoiec
     })
 
 
@@ -320,7 +348,7 @@ const Home = () => {
         setMessage("document submitted successfully ....");
       },
       (error) => {
-        console.log( error.response.data.rejectedDocuments[0].error);
+        console.log(error.response.data.rejectedDocuments[0].error);
         const resMessage =
           (
             error.response?.data?.rejectedDocuments[0]?.error?.message?.toString());
@@ -346,7 +374,7 @@ const Home = () => {
       <button onClick={sendSchema}> send</button>
 
       <hr />
-      <h3 style={{backgroundColor:"red"}}>{message}</h3>
+      <h3 style={{ backgroundColor: "red" }}>{message}</h3>
     </div>
   );
 };
