@@ -276,9 +276,9 @@ const Home = () => {
         , address: {
           ...schema.issuer.address,
           branchID: document[0].issuer__address__branchID,
-          buildingNumber: document[0].issuer__address__buildingNumber,
+          buildingNumber: ""+document[0].issuer__address__buildingNumber,
           country: document[0].issuer__address__country,
-          floor: document[0].issuer__address__floor,
+          floor:""+ document[0].issuer__address__floor,
           governate: document[0].issuer__address__governate,
           regionCity: document[0].issuer__address__regionCity,
           street: document[0].issuer__address__street,
@@ -287,14 +287,14 @@ const Home = () => {
       receiver: {
         ...schema.receiver,
         name: document[0].receiver__name,
-        id: "" + document[0].receiver__id,
+        id:  document[0].receiver__id == undefined? "" : ""+ document[0].receiver__id,
         type: document[0].receiver__type
         , address: {
           ...schema.receiver.address,
           branchID: document[0].receiver__address__branchID,
           buildingNumber:""+ document[0].receiver__address__buildingNumber,
           country: document[0].receiver__address__country,
-          floor: document[0].receiver__address__floor,
+          floor:""+document[0].receiver__address__floor,
           governate: document[0].receiver__address__governate,
           regionCity: document[0].receiver__address__regionCity,
           street: document[0].receiver__address__street,
